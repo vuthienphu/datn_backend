@@ -1,5 +1,7 @@
 package com.example.routeplanner.service.implement;
 
+import com.example.routeplanner.service.DistanceMatrixService;
+import org.springframework.stereotype.Service;
 import com.example.routeplanner.model.DistanceMatrix;
 import com.example.routeplanner.model.Locations;
 import com.example.routeplanner.repository.DistanceMatrixRepository;
@@ -20,7 +22,6 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
-
 @Service
 public class DistanceMatrixServiceImplement implements DistanceMatrixService {
     private static final Logger LOGGER = Logger.getLogger(DistanceMatrixServiceImplement.class.getName());
@@ -33,6 +34,7 @@ public class DistanceMatrixServiceImplement implements DistanceMatrixService {
 
     @Autowired
     private LocationsRepository locationRepository;
+
 
     public void calculateAndSaveDistanceMatrix() {
         List<Locations> locations = locationRepository.findAll();
@@ -64,7 +66,7 @@ public class DistanceMatrixServiceImplement implements DistanceMatrixService {
                         Locations destination = locations.get(j);
 
                         // Check if the record already exists
-                        if (!distanceMatrixRepository.existsByOriginIdAndDestinationId(origin, destination)) {
+                        if (!distanceMatrixRepository.existsByOriginPointCodeAndDestinationPointCode(origin, destination)) {
                             DistanceMatrix distanceMatrix = new DistanceMatrix(
                                     null, origin, destination, distance
                             );

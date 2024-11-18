@@ -13,19 +13,27 @@ public class LocationsController {
     @Autowired
     private LocationsService locationsService;
 
+
+
     @GetMapping("/api/locations")
     public List<Locations> getAllLocations() {
         return locationsService.getAllLocations();
     }
 
     @GetMapping("/api/locations/{id}")
-    public ResponseEntity<Locations> getLocationById(@PathVariable("id") Long id) {
+    public ResponseEntity<Locations> getLocationById(@PathVariable("id") Integer id) {
         return new ResponseEntity<Locations>(locationsService.getLocationById(id), HttpStatus.OK);
     }
 
     @PostMapping("/api/locations")
-    public  ResponseEntity<Locations> createProduct(@RequestBody Locations locations){
-        return new ResponseEntity<Locations>(locationsService.creatLocation(locations),HttpStatus.CREATED);
+    public ResponseEntity<Locations> createLocation(@RequestBody Locations locations){
+        return new ResponseEntity<Locations>(locationsService.createLocation(locations),HttpStatus.CREATED);
+    }
+
+    @DeleteMapping("/api/locations/{id}")
+    public ResponseEntity<String> deleteLocationById(@PathVariable("id") Integer id) {
+        locationsService.deleteLocationById(id);
+        return new ResponseEntity<String>("delete successfully", HttpStatus.OK);
     }
 
 

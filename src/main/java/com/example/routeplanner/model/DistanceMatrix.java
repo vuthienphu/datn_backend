@@ -1,7 +1,6 @@
 package com.example.routeplanner.model;
 
 import jakarta.persistence.*;
-
 import lombok.*;
 
 @NoArgsConstructor
@@ -11,38 +10,40 @@ import lombok.*;
 public class DistanceMatrix {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
-    @ManyToOne
-    @JoinColumn(name = "origin_id", referencedColumnName="id")
-    private Locations originId;
+    private Integer id;
 
     @ManyToOne
-    @JoinColumn(name = "destination_id", referencedColumnName="id")
-    private Locations destinationId;
+    @JoinColumn(name = "origin_point_code", nullable = false, referencedColumnName="point_code")
+    private Locations originPointCode;
+@ManyToOne
+    @JoinColumn(name = "destination_point_code", nullable = false, referencedColumnName="point_code")
+    private Locations destinationPointCode;
+
+    @Column(nullable = false)
     private Double distance;
 
-    public Long getId() {
+    public Integer getId() {
         return id;
     }
 
-    public void setId(Long id) {
+    public void setId(Integer id) {
         this.id = id;
     }
 
-    public Locations getOriginId() {
-        return originId;
+    public Locations getOriginPointCode() {
+        return originPointCode;
     }
 
-    public void setOriginId(Locations originId) {
-        this.originId = originId;
+    public void setOriginPointCode(Locations originPointCode) {
+        this.originPointCode = originPointCode;
     }
 
-    public Locations getDestinationId() {
-        return destinationId;
+    public Locations getDestinationPointCode() {
+        return destinationPointCode;
     }
 
-    public void setDestinationId(Locations destinationId) {
-        this.destinationId = destinationId;
+    public void setDestinationPointCode(Locations destinationPointCode) {
+        this.destinationPointCode = destinationPointCode;
     }
 
     public Double getDistance() {
@@ -53,10 +54,10 @@ public class DistanceMatrix {
         this.distance = distance;
     }
 
-    public DistanceMatrix(Long id, Locations originId, Locations destinationId, Double distance) {
+    public DistanceMatrix(Integer id, Locations originPointCode, Locations destinationPointCode, Double distance) {
         this.id = id;
-        this.originId = originId;
-        this.destinationId = destinationId;
+        this.originPointCode = originPointCode;
+        this.destinationPointCode = destinationPointCode;
         this.distance = distance;
     }
 }

@@ -7,8 +7,8 @@ import java.util.List;
 @Service
 public interface LocationsService {
     List<Locations> getAllLocations();
-    Locations getLocationById(Long id);
+    Locations getLocationById(Integer id);
 
-    Locations creatLocation(Locations locations);
-
+    Locations createLocation(Locations locations);
+void deleteLocationById(Integer id);
 }
