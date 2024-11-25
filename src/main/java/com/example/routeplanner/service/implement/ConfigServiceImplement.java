@@ -32,7 +32,6 @@ public class ConfigServiceImplement implements ConfigService {
 
         if (configData.isPresent()) {
 Config updatedConfig = configData.get();
-updatedConfig.setConfigId(config.getConfigId());
             updatedConfig.setConfigName(config.getConfigName());
             updatedConfig.setDescription(config.getDescription());
             updatedConfig.setValue(config.getValue());

@@ -10,5 +10,6 @@ public interface LocationsService {
     Locations getLocationById(Integer id);
 
     Locations createLocation(Locations locations);
+    Locations updateLocation(Integer id, Locations locations);
 void deleteLocationById(Integer id);
 }

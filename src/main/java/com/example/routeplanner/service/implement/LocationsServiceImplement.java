@@ -47,19 +47,36 @@ private DistanceMatrixRepository distanceMatrixRepository;
         Locations savedLocation = locationsRepository.save(locations);
 
 
-        distanceMatrixService.calculateAndSaveDistanceMatrix();
+        //distanceMatrixService.calculateAndSaveDistanceMatrix();
 
         return savedLocation;
     }
 
     @Override
-    @Transactional
+    public Locations updateLocation(Integer id, Locations locations) {
+        Optional<Locations> locationData = locationsRepository.findById(id);
+        if(locationData.isPresent()){
+            Locations updateLocation = locationData.get();
+            updateLocation.setPoint_code(locations.getPoint_code());
+            updateLocation.setPoint_name(locations.getPoint_name());
+            updateLocation.setAddress(locations.getAddress());
+            updateLocation.setLongitude(locations.getLongitude());
+            updateLocation.setLatitude(locations.getLatitude());
+            return locationsRepository.save(updateLocation);
+        }
+        else{
+            throw new EntityNotFoundException("Location with id " + id + " not found");
+        }
+    }
+
+    @Override
+
     public void deleteLocationById(Integer id) {
         Optional<Locations> locationData = locationsRepository.findById(id);
         if(locationData.isPresent()){
             Locations location = locationData.get();
-            distanceMatrixRepository.deleteByOriginPointCode(location);
-            distanceMatrixRepository.deleteByDestinationPointCode(location);
+            //distanceMatrixRepository.deleteByOriginPointCode(location);
+            //distanceMatrixRepository.deleteByDestinationPointCode(location);
             locationsRepository.delete(location);
         }
         else {

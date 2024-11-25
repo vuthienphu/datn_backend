@@ -30,6 +30,11 @@ public class LocationsController {
         return new ResponseEntity<Locations>(locationsService.createLocation(locations),HttpStatus.CREATED);
     }
 
+    @PutMapping("/api/locations/{id}")
+    public ResponseEntity<Locations> updateLocation(@PathVariable("id") Integer id, @RequestBody Locations locations){
+        return new ResponseEntity<Locations>(locationsService.updateLocation(id, locations),HttpStatus.OK);
+    }
+
     @DeleteMapping("/api/locations/{id}")
     public ResponseEntity<String> deleteLocationById(@PathVariable("id") Integer id) {
         locationsService.deleteLocationById(id);
