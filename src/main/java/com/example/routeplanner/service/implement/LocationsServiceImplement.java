@@ -1,13 +1,11 @@
 package com.example.routeplanner.service.implement;
 
 import com.example.routeplanner.model.Locations;
-import com.example.routeplanner.repository.DistanceMatrixRepository;
 import com.example.routeplanner.repository.LocationsRepository;
 import com.example.routeplanner.service.LocationsService;
 import jakarta.persistence.EntityNotFoundException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Optional;
@@ -18,11 +16,7 @@ public class LocationsServiceImplement implements LocationsService {
     @Autowired
     private LocationsRepository locationsRepository;
 
-@Autowired
-private DistanceMatrixServiceImplement distanceMatrixService;
 
-@Autowired
-private DistanceMatrixRepository distanceMatrixRepository;
 
     @Override
     public List<Locations> getAllLocations() {
@@ -57,8 +51,8 @@ private DistanceMatrixRepository distanceMatrixRepository;
         Optional<Locations> locationData = locationsRepository.findById(id);
         if(locationData.isPresent()){
             Locations updateLocation = locationData.get();
-            updateLocation.setPoint_code(locations.getPoint_code());
-            updateLocation.setPoint_name(locations.getPoint_name());
+            updateLocation.setPointCode(locations.getPointCode());
+            updateLocation.setPointName(locations.getPointName());
             updateLocation.setAddress(locations.getAddress());
             updateLocation.setLongitude(locations.getLongitude());
             updateLocation.setLatitude(locations.getLatitude());

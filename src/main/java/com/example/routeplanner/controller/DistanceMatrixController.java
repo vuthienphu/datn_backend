@@ -1,5 +1,6 @@
 package com.example.routeplanner.controller;
 
+import com.example.routeplanner.model.DistanceMatrixDTO;
 import com.example.routeplanner.service.DistanceMatrixService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -9,7 +10,6 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
-import java.util.Map;
 
 @RestController
 @CrossOrigin(origins = "http://localhost:3000")
@@ -18,17 +18,24 @@ public class DistanceMatrixController {
     private DistanceMatrixService distanceMatrixService;
 
     @PostMapping("/api/distance-matrix")
-    public ResponseEntity<?> calculateDistanceMatrix(@RequestBody Map<String, List<List<Double>>> requestBody) {
-        if (!requestBody.containsKey("coordinates")) {
-            return ResponseEntity.badRequest().body("Missing 'coordinates' in request body.");
-        }
-
-        List<List<Double>> coordinates = requestBody.get("coordinates");
+    public ResponseEntity<?> calculateDistanceMatrix(@RequestBody DistanceMatrixDTO distanceMatrixDTO) {
         try {
-            double[][] distanceMatrix = distanceMatrixService.calculateDistanceMatrix(coordinates);
+            String routeCode = distanceMatrixDTO.getRouteCode();
+            List<String> pointCodes = distanceMatrixDTO.getDistancematrixCoordinates();
+
+            if (routeCode == null || routeCode.isEmpty()) {
+                return ResponseEntity.badRequest().body("Route code is missing or empty.");
+            }
+            if (pointCodes == null || pointCodes.isEmpty()) {
+                return ResponseEntity.badRequest().body("Point codes are missing or empty.");
+            }
+
+            long[][] distanceMatrix = distanceMatrixService.calculateDistanceMatrix(routeCode, pointCodes);
             return ResponseEntity.ok(distanceMatrix);
         } catch (Exception e) {
-            return ResponseEntity.status(500).body("Error while calculating distance matrix: " + e.getMessage());
+            // Log the exception for debugging
+            e.printStackTrace(); // Thêm dòng này để log lỗi
+            return ResponseEntity.status(500).body("Error: " + e.getMessage());
         }
     }
 }

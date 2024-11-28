@@ -1,12 +1,8 @@
 package com.example.routeplanner.model;
 
-import com.example.routeplanner.repository.DistanceMatrixRepository;
 import jakarta.persistence.*;
 
 import lombok.*;
-import org.springframework.beans.factory.annotation.Autowired;
-
-import java.util.List;
 
 @AllArgsConstructor
 @NoArgsConstructor
@@ -18,11 +14,11 @@ public class Locations {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
 
-    @Column(name = "point_code", nullable = false, length = 50)
-    private String point_code;
+    @Column(name = "point_code", nullable = false, length = 50,unique = true)
+    private String pointCode;
 
     @Column(name = "point_name", nullable = false, length = 100)
-    private String point_name;
+    private String pointName;
 
     @Column(name = "address", length = 255)
     private String address;
@@ -41,20 +37,20 @@ public class Locations {
         this.id = id;
     }
 
-    public String getPoint_code() {
-        return point_code;
+    public String getPointCode() {
+        return pointCode;
     }
 
-    public void setPoint_code(String point_code) {
-        this.point_code = point_code;
+    public void setPointCode(String pointCode) {
+        this.pointCode = pointCode;
     }
 
-    public String getPoint_name() {
-        return point_name;
+    public String getPointName() {
+        return pointName;
     }
 
-    public void setPoint_name(String point_name) {
-        this.point_name = point_name;
+    public void setPointName(String pointName) {
+        this.pointName = pointName;
     }
 
     public String getAddress() {

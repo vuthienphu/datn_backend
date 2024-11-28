@@ -6,8 +6,5 @@ import java.util.List;
 
 @Service
 public interface DistanceMatrixService {
-
-        double[][] calculateDistanceMatrix(List<List<Double>> coordinates) throws Exception;
-
-
+    long[][] calculateDistanceMatrix(String routeCode, List<String> pointCodes) throws Exception;
 }

@@ -13,14 +13,18 @@ public class DistanceMatrix {
     private Integer id;
 
     @ManyToOne
+    @JoinColumn(name="route_code",nullable = false,referencedColumnName="route_code")
+    private Route route;
+
+    @ManyToOne
     @JoinColumn(name = "origin_point_code", nullable = false, referencedColumnName="point_code")
     private Locations originPointCode;
-@ManyToOne
+    @ManyToOne
     @JoinColumn(name = "destination_point_code", nullable = false, referencedColumnName="point_code")
     private Locations destinationPointCode;
 
-    @Column(nullable = false)
-    private Double distance;
+    @Column(name="distance",nullable = false)
+    private Long distance;
 
     public Integer getId() {
         return id;
@@ -46,16 +50,25 @@ public class DistanceMatrix {
         this.destinationPointCode = destinationPointCode;
     }
 
-    public Double getDistance() {
+    public Long getDistance() {
         return distance;
     }
 
-    public void setDistance(Double distance) {
+    public void setDistance(Long distance) {
         this.distance = distance;
     }
 
-    public DistanceMatrix(Integer id, Locations originPointCode, Locations destinationPointCode, Double distance) {
+    public Route getRoute() {
+        return route;
+    }
+
+    public void setRoute(Route route) {
+        this.route = route;
+    }
+
+    public DistanceMatrix(Integer id, Route route, Locations originPointCode, Locations destinationPointCode, Long distance) {
         this.id = id;
+        this.route = route;
         this.originPointCode = originPointCode;
         this.destinationPointCode = destinationPointCode;
         this.distance = distance;
