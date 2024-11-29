@@ -25,7 +25,7 @@ public class OptimizeRouteService {
     @Autowired
     private LocationsRepository locationsRepository;
 
-    public List<List<String>> optimizeRoute(String routeCode, List<String> pointCodes, int vehicleNumber) throws Exception {
+    public List<String> optimizeRoute(String routeCode, List<String> pointCodes, int vehicleNumber) throws Exception {
         // Lấy ma trận khoảng cách từ OpenRouteService
         long[][] distanceMatrix = distanceMatrixService.calculateDistanceMatrix(routeCode, pointCodes);
         System.out.println("Distance Matrix: ");
@@ -53,7 +53,6 @@ public class OptimizeRouteService {
                 throw new Exception("Location not found for point code: " + pointCode);
             }
         }
-
 
         // Khởi tạo dữ liệu với điểm xuất phát và điểm kết thúc là cùng một điểm
         int[] startDepots = new int[vehicleNumber];
@@ -96,15 +95,14 @@ public class OptimizeRouteService {
             throw new Exception("No solution found for the routing problem.");
         }
 
-        // Trả về các tuyến đường tối ưu dưới dạng mã điểm
+        // Trả về danh sách mã điểm tối ưu
         return getSolution(manager, routing, solution, pointCodes, vehicleNumber);
     }
 
-    private List<List<String>> getSolution(RoutingIndexManager manager, RoutingModel routing, Assignment solution, List<String> pointCodes, int vehicleNumber) {
-        List<List<String>> routes = new ArrayList<>();
+    private List<String> getSolution(RoutingIndexManager manager, RoutingModel routing, Assignment solution, List<String> pointCodes, int vehicleNumber) {
+        List<String> flatRoute = new ArrayList<>();
 
         for (int i = 0; i < vehicleNumber; ++i) {
-            List<String> route = new ArrayList<>();
             long index = routing.start(i); // Lấy điểm xuất phát cho xe i
             boolean isFirstNode = true;
 
@@ -113,8 +111,8 @@ public class OptimizeRouteService {
                 String pointCode = pointCodes.get(nodeIndex);
 
                 // Kiểm tra và thêm điểm đầu tiên hoặc các điểm chưa có trong danh sách
-                if (isFirstNode || !route.contains(pointCode)) {
-                    route.add(pointCode);
+                if (isFirstNode || !flatRoute.contains(pointCode)) {
+                    flatRoute.add(pointCode);
                     isFirstNode = false; // Đã thêm điểm đầu tiên, bỏ qua kiểm tra tiếp theo
                 }
 
@@ -122,12 +120,9 @@ public class OptimizeRouteService {
             }
 
             // Thêm điểm xuất phát vào cuối tuyến đường để quay lại depot
-            route.add(pointCodes.get(manager.indexToNode(routing.start(i))));
-            routes.add(route);
-
-            System.out.println("Route for vehicle " + i + ": " + route); // In ra tuyến đường của xe i
+            flatRoute.add(pointCodes.get(manager.indexToNode(routing.start(i))));
         }
 
-        return routes;
+        return flatRoute;
     }
 }

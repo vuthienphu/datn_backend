@@ -21,7 +21,7 @@ public class OptimizeRouteController {
         int vehicleNumber = 1;
         try {
             // Gọi service với dữ liệu từ DTO
-            List<List<String>> optimizedRoutes = routeOptimizationService.optimizeRoute(
+            List<String> optimizedRoutes = routeOptimizationService.optimizeRoute(
                     optimizeRouteDTO.getRouteCode(),
                     optimizeRouteDTO.getOptimizeRouteCoordinates(),
                     vehicleNumber
