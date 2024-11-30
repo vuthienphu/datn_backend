@@ -1,24 +1,29 @@
 package com.example.routeplanner.model;
-
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import org.antlr.v4.runtime.misc.NotNull;
+
 
 @AllArgsConstructor
 @NoArgsConstructor
 @Data
 @Entity
-@Table(name = "route")
-public class Route {
+@Table(name = "route_optimize")
+public class OptimizeRoute {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
 
+    @ManyToOne
+    @JoinColumn(name="route_code",referencedColumnName="route_code",nullable = false)
+    private Route routeCode;
 
-    @Column(name="route_code",nullable = false)
-    private String routeCode;
+
+    @Column(name = "sequence")
+    private Integer sequence; // Thứ tự của điểm trong tuyến đường tối ưu
+
+
 
     @ManyToOne
     @JoinColumn(name = "point_code", referencedColumnName="point_code",nullable = false)
@@ -32,11 +37,19 @@ public class Route {
         this.id = id;
     }
 
-    public String getRouteCode() {
+    public Integer getSequence() {
+        return sequence;
+    }
+
+    public void setSequence(Integer sequence) {
+        this.sequence = sequence;
+    }
+
+    public Route getRouteCode() {
         return routeCode;
     }
 
-    public void setRouteCode(String routeCode) {
+    public void setRouteCode(Route routeCode) {
         this.routeCode = routeCode;
     }
 
@@ -47,10 +60,5 @@ public class Route {
     public void setPointCode(Locations pointCode) {
         this.pointCode = pointCode;
     }
-
-    public Route(String routeCode) {
-        this.routeCode = routeCode;
-    }
-
 
 }

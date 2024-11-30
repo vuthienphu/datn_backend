@@ -1,8 +1,12 @@
 package com.example.routeplanner.service.implement;
 
 import com.example.routeplanner.model.Locations;
+import com.example.routeplanner.model.OptimizeRoute;
+import com.example.routeplanner.model.Route;
 import com.example.routeplanner.repository.ConfigRepository;
 import com.example.routeplanner.repository.LocationsRepository;
+import com.example.routeplanner.repository.OptimizeRouteRepository;
+import com.example.routeplanner.repository.RouteRepository;
 import com.example.routeplanner.service.DistanceMatrixService;
 import com.example.routeplanner.service.OptimizeRouteService;
 import com.google.ortools.Loader;
@@ -31,7 +35,12 @@ public class OptimizeRouteServiceImplement implements OptimizeRouteService {
     @Autowired
     private ConfigRepository configRepository;
 
+    @Autowired
+    private OptimizeRouteRepository optimizeRouteRepository;  // Add repository for OptimizeRoute
 
+
+    @Autowired
+    private RouteRepository routeRepository;
 
     public List<String> optimizeRoute(String routeCode, List<String> pointCodes, int vehicleNumber) throws Exception {
 
@@ -50,19 +59,18 @@ public class OptimizeRouteServiceImplement implements OptimizeRouteService {
             e.printStackTrace();
             return List.of("Error occurred while checking max_distance_vehicles configuration.");// In ra thông báo lỗi trên terminal
         }
-try{
-        Boolean isCostCoefficient = configRepository.findConfigStatus("cost_coefficient");
+        try {
+            Boolean isCostCoefficient = configRepository.findConfigStatus("cost_coefficient");
 
 
-        if (isCostCoefficient == null || !isCostCoefficient) {
-            throw new Exception("Configuration for cost_coefficient is not active.");
+            if (isCostCoefficient == null || !isCostCoefficient) {
+                throw new Exception("Configuration for cost_coefficient is not active.");
+            }
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            return List.of("Error occurred while checking cost_coefficient configuration.");
         }
-
-        }
-catch (Exception e) {
-    e.printStackTrace();
-    return List.of("Error occurred while checking cost_coefficient configuration.");
-}
         long[][] distanceMatrix = distanceMatrixService.calculateDistanceMatrix(routeCode, pointCodes);
         System.out.println("Distance Matrix: ");
         if (distanceMatrix != null && distanceMatrix.length > 0) {
@@ -131,9 +139,12 @@ catch (Exception e) {
             throw new Exception("No solution found for the routing problem.");
         }
         long objective = solution.objectiveValue();
+
+        List<String> optimizedRoute = getSolution(manager, routing, solution, pointCodes, vehicleNumber);
+        saveOptimizedRoute(routeCode, optimizedRoute);
         System.out.println("Objective (total cost): " + objective);
-        // Trả về danh sách mã điểm tối ưu
-        return getSolution(manager, routing, solution, pointCodes, vehicleNumber);
+        return optimizedRoute;
+
     }
 
     private List<String> getSolution(RoutingIndexManager manager, RoutingModel routing, Assignment solution, List<String> pointCodes, int vehicleNumber) {
@@ -159,7 +170,39 @@ catch (Exception e) {
             // Thêm điểm xuất phát vào cuối tuyến đường để quay lại depot
             flatRoute.add(pointCodes.get(manager.indexToNode(routing.start(i))));
         }
-        System.out.println("Optimize Route: " +flatRoute);
+        System.out.println("Optimize Route: " + flatRoute);
         return flatRoute;
+    }
+
+    private void saveOptimizedRoute(String routeCode, List<String> optimizedRoute) {
+        List<Route> existingRoutes = routeRepository.findAllByRouteCode(routeCode);
+        Route route;
+
+        // Nếu có ít nhất một Route, lấy bản ghi đầu tiên
+        if (!existingRoutes.isEmpty()) {
+            route = existingRoutes.get(0); // Chọn bản ghi đầu tiên
+        } else {
+            // Nếu không có Route nào, tạo mới
+            route = new Route();
+            route.setRouteCode(routeCode);  // Gán mã tuyến đường
+            route = routeRepository.save(route);  // Lưu Route vào cơ sở dữ liệu
+        }
+
+        // Lưu các entry của OptimizeRoute
+        int sequence = 1;
+        for (String pointCode : optimizedRoute) {
+            // Tìm kiếm Location tương ứng với pointCode
+            Locations location = locationsRepository.findFirstByPointCode(pointCode)
+                    .orElseThrow(() -> new RuntimeException("Location not found for point code: " + pointCode));
+
+            // Tạo đối tượng OptimizeRoute và thiết lập các thuộc tính
+            OptimizeRoute optimizeRoute = new OptimizeRoute();
+            optimizeRoute.setRouteCode(route);  // Liên kết với Route đã lưu
+            optimizeRoute.setPointCode(location);  // Liên kết với Location tìm được
+            optimizeRoute.setSequence(sequence++);  // Gán thứ tự và tăng lên sau mỗi vòng lặp
+
+            // Lưu đối tượng OptimizeRoute
+            optimizeRouteRepository.save(optimizeRoute);
+        }
     }
 }
