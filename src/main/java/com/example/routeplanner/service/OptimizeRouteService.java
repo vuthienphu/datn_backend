@@ -1,6 +1,7 @@
 package com.example.routeplanner.service;
 
 import com.example.routeplanner.model.Locations;
+import com.example.routeplanner.repository.ConfigRepository;
 import com.example.routeplanner.repository.LocationsRepository;
 import com.google.ortools.Loader;
 import com.google.ortools.constraintsolver.*;
@@ -25,8 +26,41 @@ public class OptimizeRouteService {
     @Autowired
     private LocationsRepository locationsRepository;
 
+    @Autowired
+    private ConfigRepository configRepository;
+
+
+
     public List<String> optimizeRoute(String routeCode, List<String> pointCodes, int vehicleNumber) throws Exception {
-        // Lấy ma trận khoảng cách từ OpenRouteService
+
+        Double maxDistanceVehicles = configRepository.findConfig("max_distance_vehicles");
+        Double costCoefficient = configRepository.findConfig("cost_coefficient");
+
+        // Kiểm tra trạng thái của config
+
+        try {
+            Boolean isMaxDistanceVehicles = configRepository.findConfigStatus("max_distance_vehicles");
+
+            if (isMaxDistanceVehicles == null || !isMaxDistanceVehicles) {
+                throw new Exception("Configuration for max_distance_vehicles is not active.");
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+            return List.of("Error occurred while checking max_distance_vehicles configuration.");// In ra thông báo lỗi trên terminal
+        }
+try{
+        Boolean isCostCoefficient = configRepository.findConfigStatus("cost_coefficient");
+
+
+        if (isCostCoefficient == null || !isCostCoefficient) {
+            throw new Exception("Configuration for cost_coefficient is not active.");
+        }
+
+        }
+catch (Exception e) {
+    e.printStackTrace();
+    return List.of("Error occurred while checking cost_coefficient configuration.");
+}
         long[][] distanceMatrix = distanceMatrixService.calculateDistanceMatrix(routeCode, pointCodes);
         System.out.println("Distance Matrix: ");
         if (distanceMatrix != null && distanceMatrix.length > 0) {
@@ -77,9 +111,9 @@ public class OptimizeRouteService {
         routing.setArcCostEvaluatorOfAllVehicles(transitCallbackIndex);
 
         // Thêm ràng buộc khoảng cách (ví dụ: giới hạn 3000 km)
-        routing.addDimension(transitCallbackIndex, 0, 500000, true, "Distance");
+        routing.addDimension(transitCallbackIndex, 0, maxDistanceVehicles.longValue(), true, "Distance");
         RoutingDimension distanceDimension = routing.getMutableDimension("Distance");
-        distanceDimension.setGlobalSpanCostCoefficient(100);
+        distanceDimension.setGlobalSpanCostCoefficient(costCoefficient.longValue());
 
         // Cài đặt chiến lược tìm giải pháp
         RoutingSearchParameters searchParameters = main.defaultRoutingSearchParameters()
@@ -94,7 +128,8 @@ public class OptimizeRouteService {
         if (solution == null) {
             throw new Exception("No solution found for the routing problem.");
         }
-
+        long objective = solution.objectiveValue();
+        System.out.println("Objective (total cost): " + objective);
         // Trả về danh sách mã điểm tối ưu
         return getSolution(manager, routing, solution, pointCodes, vehicleNumber);
     }
@@ -122,7 +157,7 @@ public class OptimizeRouteService {
             // Thêm điểm xuất phát vào cuối tuyến đường để quay lại depot
             flatRoute.add(pointCodes.get(manager.indexToNode(routing.start(i))));
         }
-
+        System.out.println(flatRoute);
         return flatRoute;
     }
 }

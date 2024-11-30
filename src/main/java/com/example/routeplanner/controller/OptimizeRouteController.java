@@ -1,6 +1,7 @@
 package com.example.routeplanner.controller;
 
 import com.example.routeplanner.model.OptimizeRouteDTO;
+import com.example.routeplanner.repository.ConfigRepository;
 import com.example.routeplanner.service.OptimizeRouteService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -15,6 +16,7 @@ import java.util.List;
 public class OptimizeRouteController {
     @Autowired
     private OptimizeRouteService routeOptimizationService;
+
 
     @PostMapping("api/route/optimize")
     public ResponseEntity<?> optimizeRoute(@RequestBody OptimizeRouteDTO optimizeRouteDTO) {
