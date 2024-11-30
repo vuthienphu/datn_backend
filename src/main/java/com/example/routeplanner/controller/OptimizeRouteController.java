@@ -1,29 +1,26 @@
 package com.example.routeplanner.controller;
 
 import com.example.routeplanner.model.OptimizeRouteDTO;
-import com.example.routeplanner.repository.ConfigRepository;
-import com.example.routeplanner.service.OptimizeRouteService;
+import com.example.routeplanner.service.implement.OptimizeRouteServiceImplement;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.Collections;
 import java.util.List;
 
 @RestController
 @CrossOrigin(origins = "http://localhost:3000")
 public class OptimizeRouteController {
     @Autowired
-    private OptimizeRouteService routeOptimizationService;
-
+    private OptimizeRouteServiceImplement optimizeRouteServiceImplement;
 
     @PostMapping("api/route/optimize")
     public ResponseEntity<?> optimizeRoute(@RequestBody OptimizeRouteDTO optimizeRouteDTO) {
         int vehicleNumber = 1;
         try {
             // Gọi service với dữ liệu từ DTO
-            List<String> optimizedRoutes = routeOptimizationService.optimizeRoute(
+            List<String> optimizedRoutes = optimizeRouteServiceImplement.optimizeRoute(
                     optimizeRouteDTO.getRouteCode(),
                     optimizeRouteDTO.getOptimizeRouteCoordinates(),
                     vehicleNumber
