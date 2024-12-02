@@ -2,22 +2,19 @@ package com.example.routeplanner.service.implement;
 
 import com.example.routeplanner.model.Locations;
 import com.example.routeplanner.model.OptimizeRoute;
+import com.example.routeplanner.model.OptimizeRouteDTO;
 import com.example.routeplanner.model.Route;
-import com.example.routeplanner.repository.ConfigRepository;
-import com.example.routeplanner.repository.LocationsRepository;
-import com.example.routeplanner.repository.OptimizeRouteRepository;
-import com.example.routeplanner.repository.RouteRepository;
+import com.example.routeplanner.repository.*;
 import com.example.routeplanner.service.DistanceMatrixService;
 import com.example.routeplanner.service.OptimizeRouteService;
 import com.google.ortools.Loader;
 import com.google.ortools.constraintsolver.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
+import java.util.stream.Collectors;
 
 @Service
 public class OptimizeRouteServiceImplement implements OptimizeRouteService {
@@ -41,6 +38,9 @@ public class OptimizeRouteServiceImplement implements OptimizeRouteService {
 
     @Autowired
     private RouteRepository routeRepository;
+
+    @Autowired
+    private DistanceMatrixRepository distanceMatrixRepository;
 
     public List<String> optimizeRoute(String routeCode, List<String> pointCodes, int vehicleNumber) throws Exception {
 
@@ -147,6 +147,7 @@ public class OptimizeRouteServiceImplement implements OptimizeRouteService {
 
     }
 
+
     private List<String> getSolution(RoutingIndexManager manager, RoutingModel routing, Assignment solution, List<String> pointCodes, int vehicleNumber) {
         List<String> flatRoute = new ArrayList<>();
 
@@ -204,5 +205,45 @@ public class OptimizeRouteServiceImplement implements OptimizeRouteService {
             // Lưu đối tượng OptimizeRoute
             optimizeRouteRepository.save(optimizeRoute);
         }
+    }
+
+    @Override
+    public List<String> getAllRouteCodes() {
+        return optimizeRouteRepository.findAllRouteCodes();
+    }
+
+ @Override
+    public OptimizeRouteDTO getOptimizeRouteByRouteCode(String routeCode) {
+     // Lấy danh sách tuyến đường tối ưu từ bảng route_optimize với JOIN FETCH
+     List<OptimizeRoute> optimizeRoutes = optimizeRouteRepository.findByRouteCodeWithRoute(routeCode);
+
+     // Tạo danh sách tọa độ từ các điểm trong optimize_route
+     List<String> optimizeRouteCoordinates = optimizeRoutes.stream()
+             .sorted((o1, o2) -> o1.getSequence().compareTo(o2.getSequence())) // Sắp xếp theo thứ tự sequence
+             .map(optimizeRoute -> optimizeRoute.getPointCode().getPointCode())
+             .distinct()// Lấy tên điểm từ bảng locations
+             .collect(Collectors.toList());
+
+     if (!optimizeRouteCoordinates.isEmpty() &&
+             !optimizeRouteCoordinates.get(0).equals(optimizeRouteCoordinates.get(optimizeRouteCoordinates.size() - 1))) {
+         optimizeRouteCoordinates.add(optimizeRouteCoordinates.get(0)); // Thêm lại điểm cuối
+     }
+     // Tạo và trả về OptimizeRouteDTO
+     OptimizeRouteDTO optimizeRouteDTO = new OptimizeRouteDTO();
+     optimizeRouteDTO.setRouteCode(routeCode);
+     optimizeRouteDTO.setOptimizeRouteCoordinates(optimizeRouteCoordinates);
+
+     return optimizeRouteDTO;
+ }
+    @Transactional
+    public void deleteRouteByRouteCode(String routeCode) {
+        // Tìm tất cả các bản ghi trong bảng route có route_code tương ứng
+        optimizeRouteRepository.deleteByNativeQuery(routeCode);
+
+        // Xóa tất cả bản ghi trong bảng distance_matrix liên quan đến routeCode
+        distanceMatrixRepository.deleteByNativeQuery(routeCode);
+
+        // Xóa tất cả bản ghi trong bảng route liên quan đến routeCode
+        routeRepository.deleteByNativeQuery(routeCode);
     }
 }

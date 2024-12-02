@@ -1,5 +1,6 @@
 package com.example.routeplanner.controller;
 
+import com.example.routeplanner.model.OptimizeRoute;
 import com.example.routeplanner.model.OptimizeRouteDTO;
 import com.example.routeplanner.service.implement.OptimizeRouteServiceImplement;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -34,4 +35,17 @@ public class OptimizeRouteController {
         }
     }
 
+    @GetMapping("/api/route/route-code")
+    public List<String> getAllRouteCodes (){
+        return optimizeRouteServiceImplement.getAllRouteCodes();
+    }
+    @GetMapping("/api/route/{routeCode}")
+    public OptimizeRouteDTO getOptimizeRoute(@PathVariable String routeCode) {
+        return optimizeRouteServiceImplement.getOptimizeRouteByRouteCode(routeCode);
+    }
+    @DeleteMapping("/api/route/{routeCode}")
+    public ResponseEntity<String> deleteRouteByRouteCode(@PathVariable("routeCode") String routeCode) {
+        optimizeRouteServiceImplement.deleteRouteByRouteCode(routeCode);
+        return new ResponseEntity<String>("Delete successfully",HttpStatus.OK);
+    }
 }
