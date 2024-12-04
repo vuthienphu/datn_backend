@@ -48,4 +48,9 @@ public class OptimizeRouteController {
         optimizeRouteServiceImplement.deleteRouteByRouteCode(routeCode);
         return new ResponseEntity<String>("Delete successfully",HttpStatus.OK);
     }
+    @DeleteMapping("/api/route/edit/{routeCodeEdit}")
+    public ResponseEntity<String> deleteRoute(@PathVariable("routeCodeEdit") String routeCodeEdit) {
+        optimizeRouteServiceImplement.deleteRouteByRouteCode(routeCodeEdit);
+        return new ResponseEntity<String>("Delete successfully",HttpStatus.OK);
+    }
 }
