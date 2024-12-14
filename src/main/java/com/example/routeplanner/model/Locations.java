@@ -4,6 +4,8 @@ import jakarta.persistence.*;
 
 import lombok.*;
 
+import java.util.List;
+
 @AllArgsConstructor
 @NoArgsConstructor
 @Data
@@ -16,6 +18,7 @@ public class Locations {
 
     @Column(name = "point_code", nullable = false, length = 50,unique = true)
     private String pointCode;
+
 
     @Column(name = "point_name", nullable = false, length = 100)
     private String pointName;

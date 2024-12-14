@@ -64,7 +64,6 @@ public class LocationsServiceImplement implements LocationsService {
     }
 
     @Override
-
     public void deleteLocationById(Integer id) {
         Optional<Locations> locationData = locationsRepository.findById(id);
         if(locationData.isPresent()){
