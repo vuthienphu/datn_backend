@@ -1,5 +1,6 @@
 package com.example.routeplanner.service.implement;
 
+import com.example.routeplanner.model.Users;
 import com.example.routeplanner.service.JWTService;
 import com.example.routeplanner.service.JWTService;
 import io.jsonwebtoken.Claims;
@@ -60,8 +61,9 @@ public class JWTServiceImplement implements JWTService {
 
     // Phương thức tạo JWT từ thông tin người dùng
     public String generateToken(UserDetails userDetails) {
-
+        Users user = (Users) userDetails;
         return Jwts.builder().setSubject(userDetails.getUsername())
+                .claim("role", user.getRole().name())
                 .setIssuedAt(new Date(System.currentTimeMillis()))
                 .setExpiration(new Date(System.currentTimeMillis()+10000*60*24))
                 .signWith(getSigningKey(), SignatureAlgorithm.HS256)
@@ -69,8 +71,9 @@ public class JWTServiceImplement implements JWTService {
     }
 
     public String generateRefreshToken(Map<String,Object> extractClaim, UserDetails userDetails) {
-
+        Users user = (Users) userDetails;
         return Jwts.builder().setClaims(extractClaim).setSubject(userDetails.getUsername())
+                .claim("role", user.getRole().name())
                 .setIssuedAt(new Date(System.currentTimeMillis()))
                 .setExpiration(new Date(System.currentTimeMillis()+604800000))
                 .signWith(getSigningKey(), SignatureAlgorithm.HS256)
