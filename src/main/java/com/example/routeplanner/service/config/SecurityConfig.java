@@ -17,6 +17,11 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.web.cors.CorsConfiguration;
+import org.springframework.web.cors.CorsConfigurationSource;
+import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
+
+import java.util.List;
 
 @Configuration
 @EnableWebSecurity
@@ -36,14 +41,15 @@ public class SecurityConfig {
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
 
         return http
+                .cors(cors -> cors.configurationSource(corsConfigurationSource()))
                 .csrf(AbstractHttpConfigurer::disable) // Vô hiệu hóa CSRF
                 .authorizeHttpRequests(
                         req->req
-                                .requestMatchers(HttpMethod.GET).permitAll()                                        // Cho phép tất cả các yêu cầu GET
+                                .requestMatchers(HttpMethod.GET).permitAll()
+                                .requestMatchers(HttpMethod.DELETE).permitAll()
+                                .requestMatchers(HttpMethod.POST).permitAll()
+                                .requestMatchers(HttpMethod.PUT).permitAll()
                                 .requestMatchers("/login/**", "/register/**").permitAll()                  // Cho phép các yêu cầu đăng nhập và đăng ký
-                                .requestMatchers(HttpMethod.POST,"/admin/**").hasAuthority(Role.ADMIN.name())      // Yêu cầu quyền ADMIN cho các yêu cầu POST tới /admin/**
-                                .requestMatchers(HttpMethod.PUT, "/admin/**").hasAuthority(Role.ADMIN.name())        // Yêu cầu quyền ADMIN cho các yêu cầu PUT tới /admin/**
-                                .requestMatchers(HttpMethod.DELETE,"/admin/**").hasAuthority(Role.ADMIN.name())// Yêu cầu quyền ADMIN cho các yêu cầu DELETE tới /admin/**
                                 .anyRequest().authenticated()                                                       // Tất cả các yêu cầu khác yêu cầu xác thực
                 )
                 .sessionManagement(session->session
@@ -51,7 +57,29 @@ public class SecurityConfig {
                 .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
                 .build();
     }
+    @Bean
+    public CorsConfigurationSource corsConfigurationSource() {
+        // Tạo đối tượng CorsConfiguration
+        CorsConfiguration configuration = new CorsConfiguration();
 
+        // Đặt danh sách các origin được phép truy cập
+        configuration.setAllowedOrigins(List.of("http://localhost:3000")); // Thay bằng URL của frontend nếu cần
+
+        // Đặt các phương thức HTTP được phép
+        configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
+
+        // Đặt các tiêu đề được phép
+        configuration.setAllowedHeaders(List.of("*"));
+
+        // Cho phép gửi thông tin xác thực (cookies, headers Authorization)
+        configuration.setAllowCredentials(true);
+
+        // Tạo và đăng ký cấu hình với các endpoint
+        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+        source.registerCorsConfiguration("/**", configuration); // Áp dụng cấu hình CORS cho tất cả các endpoint
+
+        return source;
+    }
 
 
     @Bean

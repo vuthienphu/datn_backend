@@ -46,7 +46,7 @@ public class AuthenticationServiceImplement implements AuthenticationService {
         Role role = signUpRequest.getRole() != null ? signUpRequest.getRole() : Role.USER;
         user.setRole(role);
 
-      //  user.setRole(signUpRequest.getRole());
+        //  user.setRole(signUpRequest.getRole());
         // Lưu người dùng vào cơ sở dữ liệu và nhận lại thông tin người dùng đã được lưu
 
 
