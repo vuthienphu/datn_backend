@@ -8,7 +8,15 @@ import java.util.List;
 
 @Service
 public interface OptimizeRouteService {
+    /*
     List<String> optimizeRoute(String routeCode, List<String> pointCodes, int vehicleNumber) throws Exception;
     List<String> getAllRouteCodes();
+
+     */
+
+    List<List<String>> optimizeRoute(String routeCode, List<String> pointCodes, int vehicleNumber) throws Exception;
+    List<String> getAllRouteCodes();
+
+
     OptimizeRouteDTO getOptimizeRouteByRouteCode(String routeCode);
 }

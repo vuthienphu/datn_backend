@@ -18,22 +18,24 @@ public class OptimizeRouteController {
 
     @PostMapping("api/route/optimize")
     public ResponseEntity<?> optimizeRoute(@RequestBody OptimizeRouteDTO optimizeRouteDTO) {
-        int vehicleNumber = 1;
+
         try {
-            // Gọi service với dữ liệu từ DTO
-            List<String> optimizedRoutes = optimizeRouteServiceImplement.optimizeRoute(
+            List<List<String>> optimizedRoutes = optimizeRouteServiceImplement.optimizeRoute(
                     optimizeRouteDTO.getRouteCode(),
                     optimizeRouteDTO.getOptimizeRouteCoordinates(),
-                    vehicleNumber
+                    optimizeRouteDTO.getVehicleNumber()
             );
-            // Trả về danh sách các mã điểm của các tuyến đường tối ưu
+
             return ResponseEntity.ok(optimizedRoutes);
         } catch (Exception e) {
-            // Bắt lỗi và trả về thông tin chi tiết về lỗi
-            String errorMessage = "Error processing the route optimization: " + e.getMessage();
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(errorMessage);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("Error processing the route optimization: " + e.getMessage());
         }
+
+
+
     }
+
 
     @GetMapping("/api/route/route-code")
     public List<String> getAllRouteCodes (){

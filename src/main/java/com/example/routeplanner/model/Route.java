@@ -20,7 +20,7 @@ public class Route {
     @Column(name="route_code",nullable = false)
     private String routeCode;
 
-    @ManyToOne(cascade = CascadeType.REMOVE)
+    @ManyToOne
     @JoinColumn(name = "point_code", referencedColumnName="point_code")
     private Locations pointCode;
 

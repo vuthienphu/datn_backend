@@ -7,6 +7,7 @@ import java.util.List;
 @Data
 public class OptimizeRouteDTO {
     private String routeCode;
+    private int vehicleNumber;
     private List<String> optimizeRouteCoordinates;
 
     // Getters and Setters
@@ -24,5 +25,13 @@ public class OptimizeRouteDTO {
 
     public void setOptimizeRouteCoordinates(List<String> optimizeRouteCoordinates) {
         this.optimizeRouteCoordinates = optimizeRouteCoordinates;
+    }
+
+    public int getVehicleNumber() {
+        return vehicleNumber;
+    }
+
+    public void setVehicleNumber(int vehicleNumber) {
+        this.vehicleNumber = vehicleNumber;
     }
 }

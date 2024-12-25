@@ -19,4 +19,5 @@ public interface RouteRepository extends JpaRepository<Route, Integer> {
     @Transactional
     @Query(value = "DELETE FROM route WHERE route_code = :routeCode", nativeQuery = true)
     void deleteByNativeQuery(@Param("routeCode") String routeCode);
+    Route findFirstByRouteCode(String routeCode);
 }

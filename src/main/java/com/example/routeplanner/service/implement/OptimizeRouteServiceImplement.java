@@ -41,7 +41,7 @@ public class OptimizeRouteServiceImplement implements OptimizeRouteService {
 
     @Autowired
     private DistanceMatrixRepository distanceMatrixRepository;
-
+/*
     public List<String> optimizeRoute(String routeCode, List<String> pointCodes, int vehicleNumber) throws Exception {
 
         Double maxDistanceVehicles = configRepository.findConfig("max_distance_vehicles");
@@ -174,6 +174,137 @@ public class OptimizeRouteServiceImplement implements OptimizeRouteService {
         System.out.println("Optimize Route: " + flatRoute);
         return flatRoute;
     }
+*/
+
+    public List<List<String>> optimizeRoute(
+            String routeCode,
+            List<String> pointCodes,
+            int vehicleNumber
+    ) throws Exception {
+        // Lấy cấu hình
+        Double maxDistanceVehicles = configRepository.findConfig("max_distance_vehicles");
+        Double costCoefficient = configRepository.findConfig("cost_coefficient");
+
+        // Kiểm tra trạng thái cấu hình
+        if (!Boolean.TRUE.equals(configRepository.findConfigStatus("max_distance_vehicles"))) {
+            throw new Exception("Configuration for max_distance_vehicles is not active.");
+        }
+        if (!Boolean.TRUE.equals(configRepository.findConfigStatus("cost_coefficient"))) {
+            throw new Exception("Configuration for cost_coefficient is not active.");
+        }
+
+        // Tính toán ma trận khoảng cách
+        long[][] distanceMatrix = distanceMatrixService.calculateDistanceMatrix(routeCode, pointCodes);
+        if (distanceMatrix == null || distanceMatrix.length == 0) {
+            throw new Exception("Distance matrix is invalid or empty.");
+        }
+
+        // Khởi tạo dữ liệu đầu vào cho solver
+        int[] startDepots = new int[vehicleNumber];
+        int[] endDepots = new int[vehicleNumber];
+        for (int i = 0; i < vehicleNumber; i++) {
+            startDepots[i] = 0; // Điểm bắt đầu là index 0
+            endDepots[i] = 0;   // Điểm kết thúc quay lại depot
+        }
+
+        // Tạo RoutingIndexManager và RoutingModel
+        RoutingIndexManager manager = new RoutingIndexManager(distanceMatrix.length, vehicleNumber, startDepots, endDepots);
+        RoutingModel routing = new RoutingModel(manager);
+
+        // Đăng ký callback để tính chi phí giữa các điểm
+        final int transitCallbackIndex = routing.registerTransitCallback((long fromIndex, long toIndex) -> {
+            int fromNode = manager.indexToNode(fromIndex);
+            int toNode = manager.indexToNode(toIndex);
+            return distanceMatrix[fromNode][toNode];
+        });
+
+        // Thiết lập chi phí
+        routing.setArcCostEvaluatorOfAllVehicles(transitCallbackIndex);
+
+        // Thêm ràng buộc khoảng cách
+        routing.addDimension(
+                transitCallbackIndex,
+                0, // Không có thời gian chờ
+                maxDistanceVehicles.longValue(),
+                true,
+                "Distance"
+        );
+        RoutingDimension distanceDimension = routing.getMutableDimension("Distance");
+        distanceDimension.setGlobalSpanCostCoefficient(costCoefficient.longValue());
+
+        // Cài đặt chiến lược tìm kiếm
+        RoutingSearchParameters searchParameters = main.defaultRoutingSearchParameters()
+                .toBuilder()
+                .setFirstSolutionStrategy(FirstSolutionStrategy.Value.PATH_CHEAPEST_ARC)
+                .setLogSearch(true)
+                .build();
+
+        // Giải quyết bài toán
+        Assignment solution = routing.solveWithParameters(searchParameters);
+        if (solution == null) {
+            throw new Exception("No solution found for the routing problem.");
+        }
+
+        // Lấy kết quả
+        List<List<String>> optimizedRoutes = getSolution(manager, routing, solution, pointCodes, vehicleNumber);
+
+        // Lưu kết quả vào cơ sở dữ liệu
+        for (List<String> route : optimizedRoutes) {
+            saveOptimizedRoute(routeCode, route);
+        }
+
+        System.out.println("Objective (total cost): " + solution.objectiveValue());
+        return optimizedRoutes;
+    }
+
+    private List<List<String>> getSolution(
+            RoutingIndexManager manager,
+            RoutingModel routing,
+            Assignment solution,
+            List<String> pointCodes,
+            int vehicleNumber
+    ) {
+        List<List<String>> vehicleRoutes = new ArrayList<>();
+
+        for (int i = 0; i < vehicleNumber; ++i) {
+            List<String> routeForVehicle = new ArrayList<>();
+            long index = routing.start(i); // Lấy chỉ số điểm xuất phát của xe
+
+            // Lặp qua các điểm trong tuyến đường của xe
+            while (!routing.isEnd(index)) { // Lặp cho đến khi đến điểm kết thúc
+                int nodeIndex = manager.indexToNode(index); // Chuyển index thành node index
+                routeForVehicle.add(pointCodes.get(nodeIndex)); // Thêm mã điểm vào danh sách
+                index = solution.value(routing.nextVar(index)); // Lấy điểm tiếp theo
+            }
+
+            // Kiểm tra và chỉ thêm điểm quay lại depot (HTC) nếu nó chưa có ở cuối
+            String depot = pointCodes.get(manager.indexToNode(routing.start(i)));
+
+            // Chỉ thêm depot vào đầu danh sách nếu nó không phải là điểm đầu tiên
+            if (routeForVehicle.isEmpty() || !routeForVehicle.get(0).equals(depot)) {
+                routeForVehicle.add(0, depot); // Thêm điểm quay lại depot ở đầu
+            }
+
+            // Loại bỏ điểm depot trùng lặp ở đầu danh sách
+            if (routeForVehicle.size() > 1 && routeForVehicle.get(1).equals(depot)) {
+                routeForVehicle.remove(1); // Xóa điểm depot trùng lặp
+            }
+
+            // Kiểm tra và chỉ thêm điểm quay lại depot (HTC) nếu nó chưa có ở cuối
+            if (!routeForVehicle.get(routeForVehicle.size() - 1).equals(depot)) {
+                routeForVehicle.add(depot); // Thêm điểm quay lại depot chỉ khi chưa có
+            }
+
+            vehicleRoutes.add(routeForVehicle); // Thêm tuyến đường của xe vào danh sách tổng
+        }
+
+        // In tuyến đường của từng xe để kiểm tra
+        for (int i = 0; i < vehicleRoutes.size(); i++) {
+            System.out.println("Route for vehicle " + i + ": " + vehicleRoutes.get(i));
+        }
+
+        return vehicleRoutes; // Trả về danh sách các tuyến
+    }
 
     private void saveOptimizedRoute(String routeCode, List<String> optimizedRoute) {
         List<Route> existingRoutes = routeRepository.findAllByRouteCode(routeCode);
@@ -206,6 +337,8 @@ public class OptimizeRouteServiceImplement implements OptimizeRouteService {
             optimizeRouteRepository.save(optimizeRoute);
         }
     }
+
+
 
     @Override
     public List<String> getAllRouteCodes() {
@@ -246,4 +379,6 @@ public class OptimizeRouteServiceImplement implements OptimizeRouteService {
         // Xóa tất cả bản ghi trong bảng route liên quan đến routeCode
         routeRepository.deleteByNativeQuery(routeCode);
     }
+
+
 }
