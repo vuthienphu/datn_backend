@@ -40,6 +40,21 @@ public class UserServiceImplement implements UserService {
     }
 
     @Override
+    public Users updateAuthoritiesUserById(Users user, Integer id) {
+        Optional<Users> userData = usersRepository.findById(id);
+
+        if (userData.isPresent()) {
+           Users updateUsers= userData.get();
+           updateUsers.setRole(user.getRole());
+            return usersRepository.save(updateUsers);
+        }
+        else{
+            throw new EntityNotFoundException("Users not found");
+        }
+    }
+
+
+    @Override
     public void deleteUserById(Integer id) {
         Optional<Users> userData = usersRepository.findById(id);
         if (userData.isPresent()) {

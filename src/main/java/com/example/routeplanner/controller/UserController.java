@@ -1,5 +1,6 @@
 package com.example.routeplanner.controller;
 
+import com.example.routeplanner.model.Config;
 import com.example.routeplanner.model.InfoUsersDTO;
 import com.example.routeplanner.model.Users;
 import com.example.routeplanner.service.UserService;
@@ -20,6 +21,11 @@ public class UserController {
     @GetMapping("/api/users")
     public List<InfoUsersDTO> getInfoUser(){
         return userService.getInfoUser();
+    }
+
+    @PutMapping("/api/user/{id}")
+    public ResponseEntity<Users> updateAuthoritiesUserById(@PathVariable("id") Integer id, @RequestBody Users user) {
+        return new ResponseEntity<Users>(userService.updateAuthoritiesUserById(user,id) ,HttpStatus.OK);
     }
 
     @DeleteMapping("/api/user/{id}")

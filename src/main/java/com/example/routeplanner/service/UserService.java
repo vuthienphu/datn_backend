@@ -10,5 +10,6 @@ import java.util.List;
 public interface UserService {
     UserDetailsService userDetailsService();
     List<InfoUsersDTO> getInfoUser();
+    Users updateAuthoritiesUserById(Users user,Integer id);
     void deleteUserById(Integer id);
 }
