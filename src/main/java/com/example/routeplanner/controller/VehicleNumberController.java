@@ -9,12 +9,11 @@ import lombok.AllArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.CrossOrigin;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
+import java.util.HashMap;
 import java.util.Map;
+import java.util.Optional;
 
 @RestController
 @CrossOrigin(origins = "http://localhost:3000")
@@ -61,5 +60,15 @@ public class VehicleNumberController {
                     .body("Error saving vehicle number: " + e.getMessage());
         }
 
+    }
+
+    @GetMapping("api/vehiclenumber/{routeCode}")
+    public ResponseEntity<Map<String, Object>> getVehicleNumberByRouteCode(@PathVariable String routeCode) {
+        Map<String, Object> response = vehicleNumberService.getVehicleNumberByRouteCode(routeCode);
+        if (response == null) {
+            return ResponseEntity.notFound().build();
+        }
+
+        return ResponseEntity.ok(response);
     }
 }
