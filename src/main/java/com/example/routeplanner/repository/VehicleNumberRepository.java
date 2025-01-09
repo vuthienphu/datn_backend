@@ -17,5 +17,11 @@ public interface VehicleNumberRepository extends JpaRepository<VehicleNumber, In
             "JOIN route r ON v.route_code = r.route_code " +
             "WHERE r.route_code = :routeCode LIMIT 1", nativeQuery = true)
     Map<String, Object> findVehicleNumberByRouteCode(@Param("routeCode") String routeCode);
+
+    @Query(value = "SELECT  v.vehicle_number AS v_vehicle_number " +
+            "FROM vehiclenumber v " +
+            "JOIN route r ON v.route_code = r.route_code " +
+            "WHERE r.route_code = :routeCode LIMIT 1", nativeQuery = true)
+   public int findVehicleNumber(@Param("routeCode") String routeCode);
 }
 

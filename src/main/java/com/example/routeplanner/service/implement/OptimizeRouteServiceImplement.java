@@ -1,12 +1,10 @@
 package com.example.routeplanner.service.implement;
 
-import com.example.routeplanner.model.Locations;
-import com.example.routeplanner.model.OptimizeRoute;
-import com.example.routeplanner.model.OptimizeRouteDTO;
-import com.example.routeplanner.model.Route;
+import com.example.routeplanner.model.*;
 import com.example.routeplanner.repository.*;
 import com.example.routeplanner.service.DistanceMatrixService;
 import com.example.routeplanner.service.OptimizeRouteService;
+import com.example.routeplanner.service.VehicleNumberService;
 import com.google.ortools.Loader;
 import com.google.ortools.constraintsolver.*;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -41,6 +39,12 @@ public class OptimizeRouteServiceImplement implements OptimizeRouteService {
 
     @Autowired
     private DistanceMatrixRepository distanceMatrixRepository;
+
+    @Autowired
+    private VehicleNumberRepository vehicleNumberRepository;
+
+    @Autowired
+    private VehicleNumberService vehicleNumberService;
 /*
     public List<String> optimizeRoute(String routeCode, List<String> pointCodes, int vehicleNumber) throws Exception {
 
@@ -257,7 +261,7 @@ public class OptimizeRouteServiceImplement implements OptimizeRouteService {
         return optimizedRoutes;
     }
 
-    private List<List<String>> getSolution(
+    public List<List<String>> getSolution(
             RoutingIndexManager manager,
             RoutingModel routing,
             Assignment solution,
@@ -346,27 +350,78 @@ public class OptimizeRouteServiceImplement implements OptimizeRouteService {
     }
 
  @Override
-    public OptimizeRouteDTO getOptimizeRouteByRouteCode(String routeCode) {
-     // Lấy danh sách tuyến đường tối ưu từ bảng route_optimize với JOIN FETCH
-     List<OptimizeRoute> optimizeRoutes = optimizeRouteRepository.findByRouteCodeWithRoute(routeCode);
+ public OptimizeRouteData getOptimizeRouteByRouteCode(String routeCode) {
+     // Lấy dữ liệu tuyến đường từ cơ sở dữ liệu
+     List<OptimizeRoute> routeData = optimizeRouteRepository.findByRouteCodeWithRoute(routeCode);
 
-     // Tạo danh sách tọa độ từ các điểm trong optimize_route
-     List<String> optimizeRouteCoordinates = optimizeRoutes.stream()
-             .sorted((o1, o2) -> o1.getSequence().compareTo(o2.getSequence())) // Sắp xếp theo thứ tự sequence
-             .map(optimizeRoute -> optimizeRoute.getPointCode().getPointCode())
-             .distinct()// Lấy tên điểm từ bảng locations
-             .collect(Collectors.toList());
 
-     if (!optimizeRouteCoordinates.isEmpty() &&
-             !optimizeRouteCoordinates.get(0).equals(optimizeRouteCoordinates.get(optimizeRouteCoordinates.size() - 1))) {
-         optimizeRouteCoordinates.add(optimizeRouteCoordinates.get(0)); // Thêm lại điểm cuối
+     // Lấy số xe từ VehicleNumber (nếu cần thiết, để kiểm tra số tuyến)
+     int vehicleNumber = vehicleNumberRepository.findVehicleNumber(routeCode);
+     System.out.println("Vehicle Number (số tuyến): " + vehicleNumber);
+
+     OptimizeRouteData optimizeRouteData = new OptimizeRouteData();
+     optimizeRouteData.setRouteCode(routeCode);
+
+     // Khởi tạo danh sách các tuyến đường
+     List<List<String>> optimizeRouteCoordinates = new ArrayList<>();
+     List<String> currentRoute = new ArrayList<>();
+     Set<String> addedRoutes = new HashSet<>(); // Set để theo dõi các tuyến đã thêm
+
+     for (OptimizeRoute route : routeData) {
+         String currentPoint = route.getPointCode().getPointCode();
+
+         // Nếu sequence = 1, bắt đầu một tuyến mới
+         if (route.getSequence() == 1) {
+             // Nếu currentRoute không rỗng, thêm vào danh sách tuyến
+             if (!currentRoute.isEmpty()) {
+                 // Nếu tuyến khép kín (điểm đầu = điểm cuối), loại bỏ điểm cuối trùng điểm đầu
+                 if (currentRoute.get(0).equals(currentRoute.get(currentRoute.size() - 1))) {
+                     currentRoute.remove(currentRoute.size() - 1);
+                 }
+                 // Thêm điểm đầu vào cuối để tạo thành vòng khép kín
+                 currentRoute.add(currentRoute.get(0));
+
+                 // Chuyển đổi currentRoute thành một chuỗi để kiểm tra trùng lặp
+                 String routeKey = String.join(",", currentRoute);
+                 if (!addedRoutes.contains(routeKey)) {
+                     optimizeRouteCoordinates.add(new ArrayList<>(currentRoute));
+                     addedRoutes.add(routeKey); // Đánh dấu tuyến đường đã thêm
+                 }
+                 currentRoute.clear();
+             }
+         }
+
+         // Chỉ thêm điểm vào tuyến nếu nó khác điểm cuối cùng đã thêm
+         if (currentRoute.isEmpty() || !currentPoint.equals(currentRoute.get(currentRoute.size() - 1))) {
+             currentRoute.add(currentPoint);
+         }
      }
-     // Tạo và trả về OptimizeRouteDTO
-     OptimizeRouteDTO optimizeRouteDTO = new OptimizeRouteDTO();
-     optimizeRouteDTO.setRouteCode(routeCode);
-     optimizeRouteDTO.setOptimizeRouteCoordinates(optimizeRouteCoordinates);
 
-     return optimizeRouteDTO;
+     // Thêm tuyến cuối cùng vào danh sách nếu có dữ liệu
+     if (!currentRoute.isEmpty()) {
+         // Kiểm tra nếu tuyến khép kín (điểm đầu = điểm cuối)
+         if (currentRoute.get(0).equals(currentRoute.get(currentRoute.size() - 1))) {
+             currentRoute.remove(currentRoute.size() - 1);
+         }
+         // Thêm điểm đầu vào cuối để tạo thành vòng khép kín
+         currentRoute.add(currentRoute.get(0));
+
+         // Chuyển đổi currentRoute thành một chuỗi để kiểm tra trùng lặp
+         String routeKey = String.join(",", currentRoute);
+         if (!addedRoutes.contains(routeKey)) {
+             optimizeRouteCoordinates.add(new ArrayList<>(currentRoute));
+             addedRoutes.add(routeKey); // Đánh dấu tuyến đường đã thêm
+         }
+     }
+
+     // Loại bỏ các tuyến trống
+     optimizeRouteCoordinates.removeIf(List::isEmpty);
+
+     // Gán số lượng phương tiện và danh sách tuyến
+     optimizeRouteData.setOptimizeRouteCoordinates(optimizeRouteCoordinates);
+     optimizeRouteData.setVehicleNumber(optimizeRouteCoordinates.size()); // Đảm bảo số lượng xe đúng
+
+     return optimizeRouteData;
  }
     @Transactional
     public void deleteRouteByRouteCode(String routeCode) {

@@ -16,11 +16,19 @@ public interface OptimizeRouteRepository extends JpaRepository<OptimizeRoute, In
     @Query("SELECT DISTINCT o.routeCode.routeCode FROM OptimizeRoute o")
     List<String> findAllRouteCodes();
 
-    @Query("SELECT o FROM OptimizeRoute o JOIN FETCH o.routeCode WHERE o.routeCode.routeCode = :routeCode")
+    @Query("SELECT o FROM OptimizeRoute o JOIN FETCH o.routeCode WHERE o.routeCode.routeCode = :routeCode ")
     List<OptimizeRoute> findByRouteCodeWithRoute(String routeCode);
 
     @Modifying
     @Transactional
     @Query(value = "DELETE FROM route_optimize WHERE route_code = :routeCode", nativeQuery = true)
     void deleteByNativeQuery(@Param("routeCode") String routeCode);
+/*
+    @Query("SELECT o FROM OptimizeRoute o " +
+            "JOIN FETCH o.pointCode " +
+            "WHERE o.routeCode.routeCode = :routeCode " +
+            "ORDER BY o.sequence, o.id")
+    List<OptimizeRoute> findByRouteCode(String routeCode);
+
+ */
 }

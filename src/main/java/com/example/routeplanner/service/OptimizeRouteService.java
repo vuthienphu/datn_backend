@@ -2,6 +2,7 @@ package com.example.routeplanner.service;
 
 import com.example.routeplanner.model.OptimizeRoute;
 import com.example.routeplanner.model.OptimizeRouteDTO;
+import com.example.routeplanner.model.OptimizeRouteData;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -18,5 +19,5 @@ public interface OptimizeRouteService {
     List<String> getAllRouteCodes();
 
 
-    OptimizeRouteDTO getOptimizeRouteByRouteCode(String routeCode);
+    OptimizeRouteData getOptimizeRouteByRouteCode(String routeCode);
 }

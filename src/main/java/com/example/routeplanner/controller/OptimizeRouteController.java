@@ -2,6 +2,7 @@ package com.example.routeplanner.controller;
 
 import com.example.routeplanner.model.OptimizeRoute;
 import com.example.routeplanner.model.OptimizeRouteDTO;
+import com.example.routeplanner.model.OptimizeRouteData;
 import com.example.routeplanner.service.implement.OptimizeRouteServiceImplement;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -42,7 +43,7 @@ public class OptimizeRouteController {
         return optimizeRouteServiceImplement.getAllRouteCodes();
     }
     @GetMapping("/api/route/{routeCode}")
-    public OptimizeRouteDTO getOptimizeRoute(@PathVariable String routeCode) {
+    public OptimizeRouteData getOptimizeRoute(@PathVariable String routeCode) {
         return optimizeRouteServiceImplement.getOptimizeRouteByRouteCode(routeCode);
     }
     @DeleteMapping("/api/route/{routeCode}")
