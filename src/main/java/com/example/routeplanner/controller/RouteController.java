@@ -1,6 +1,7 @@
 package com.example.routeplanner.controller;
 
 import com.example.routeplanner.model.Locations;
+import com.example.routeplanner.model.OptimizeRouteDTO;
 import com.example.routeplanner.model.Route;
 import com.example.routeplanner.model.RouteDTO;
 import com.example.routeplanner.service.RouteService;
@@ -28,5 +29,9 @@ public class RouteController {
         } catch (Exception e) {
             return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
         }
+    }
+    @GetMapping("/api/route/{routeCode}")
+    public OptimizeRouteDTO getOptimizeRoute(@PathVariable String routeCode) {
+        return routeService.getRouteByRouteCode(routeCode);
     }
 }

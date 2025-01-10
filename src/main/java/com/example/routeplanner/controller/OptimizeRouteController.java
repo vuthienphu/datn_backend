@@ -42,7 +42,7 @@ public class OptimizeRouteController {
     public List<String> getAllRouteCodes (){
         return optimizeRouteServiceImplement.getAllRouteCodes();
     }
-    @GetMapping("/api/route/{routeCode}")
+    @GetMapping("/api/optimizeroute/{routeCode}")
     public OptimizeRouteData getOptimizeRoute(@PathVariable String routeCode) {
         return optimizeRouteServiceImplement.getOptimizeRouteByRouteCode(routeCode);
     }
