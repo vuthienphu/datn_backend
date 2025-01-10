@@ -371,15 +371,17 @@ public class OptimizeRouteServiceImplement implements OptimizeRouteService {
          String currentPoint = route.getPointCode().getPointCode();
 
          // Nếu sequence = 1, bắt đầu một tuyến mới
-         if (route.getSequence() == 1) {
+         if (route.getSequence() == 1 && currentRoute.size() > 1) {
              // Nếu currentRoute không rỗng, thêm vào danh sách tuyến
              if (!currentRoute.isEmpty()) {
                  // Nếu tuyến khép kín (điểm đầu = điểm cuối), loại bỏ điểm cuối trùng điểm đầu
-                 if (currentRoute.get(0).equals(currentRoute.get(currentRoute.size() - 1))) {
+                 if (currentRoute.size() > 1 && currentRoute.get(0).equals(currentRoute.get(currentRoute.size() - 1))) {
                      currentRoute.remove(currentRoute.size() - 1);
                  }
                  // Thêm điểm đầu vào cuối để tạo thành vòng khép kín
-                 currentRoute.add(currentRoute.get(0));
+                 if (currentRoute.size() > 1) {
+                     currentRoute.add(currentRoute.get(0));
+                 }
 
                  // Chuyển đổi currentRoute thành một chuỗi để kiểm tra trùng lặp
                  String routeKey = String.join(",", currentRoute);
@@ -400,11 +402,13 @@ public class OptimizeRouteServiceImplement implements OptimizeRouteService {
      // Thêm tuyến cuối cùng vào danh sách nếu có dữ liệu
      if (!currentRoute.isEmpty()) {
          // Kiểm tra nếu tuyến khép kín (điểm đầu = điểm cuối)
-         if (currentRoute.get(0).equals(currentRoute.get(currentRoute.size() - 1))) {
+         if (currentRoute.size() > 1 && currentRoute.get(0).equals(currentRoute.get(currentRoute.size() - 1))) {
              currentRoute.remove(currentRoute.size() - 1);
          }
          // Thêm điểm đầu vào cuối để tạo thành vòng khép kín
-         currentRoute.add(currentRoute.get(0));
+         if (!currentRoute.isEmpty()) {
+             currentRoute.add(currentRoute.get(0));
+         }
 
          // Chuyển đổi currentRoute thành một chuỗi để kiểm tra trùng lặp
          String routeKey = String.join(",", currentRoute);
