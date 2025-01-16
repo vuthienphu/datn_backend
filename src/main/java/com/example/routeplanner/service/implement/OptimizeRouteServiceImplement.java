@@ -281,7 +281,7 @@ public class OptimizeRouteServiceImplement implements OptimizeRouteService {
                 index = solution.value(routing.nextVar(index)); // Lấy điểm tiếp theo
             }
 
-            // Kiểm tra và chỉ thêm điểm quay lại depot (HTC) nếu nó chưa có ở cuối
+            // Kiểm tra và chỉ thêm điểm quay lại depot nếu nó chưa có ở cuối
             String depot = pointCodes.get(manager.indexToNode(routing.start(i)));
 
             // Chỉ thêm depot vào đầu danh sách nếu nó không phải là điểm đầu tiên
@@ -357,7 +357,7 @@ public class OptimizeRouteServiceImplement implements OptimizeRouteService {
 
      // Lấy số xe từ VehicleNumber (nếu cần thiết, để kiểm tra số tuyến)
      int vehicleNumber = vehicleNumberRepository.findVehicleNumber(routeCode);
-     System.out.println("Vehicle Number (số tuyến): " + vehicleNumber);
+
 
      OptimizeRouteData optimizeRouteData = new OptimizeRouteData();
      optimizeRouteData.setRouteCode(routeCode);
